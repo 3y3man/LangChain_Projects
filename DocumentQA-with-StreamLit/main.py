@@ -35,7 +35,9 @@ atexit.register(clear_data_folder)
 
 st.title("READ MY DOCS!📄")
 
-os.environ["OPENAI_API_KEY"] = st.sidebar.text_input("Enter your API key", type='password')
+key = st.sidebar.text_input("Enter your API key", type='password')
+print("key: " + key)
+print(type(key))
 upload_file = st.sidebar.file_uploader("# Upload your documents here;", type=["pdf", "txt", "docx"], accept_multiple_files=True)
 if upload_file:
     for uploaded_file in upload_file:
@@ -61,7 +63,10 @@ if st.sidebar.button("Clear data folder"):
     
 if not os.listdir(DATA_PATH):
     st.warning("Upload a text file to begin")
+elif key == '':
+    st.error("Please enter your OpenAI API key in the sidebar.")
 else: 
+    os.environ["OPENAI_API_KEY"] = key
     llm = ChatOpenAI(model="gpt-3.5-turbo-0613")
 
     # LOAD
@@ -77,13 +82,13 @@ else:
 
     # RAG
     retriever = vectorstore.as_retriever()
-    prompt = hub.pull("rlm/rag-prompt")
+    prompt = hub.pull("rioshyb/rag-qa-with-history")
 
     def format_docs(docs):
         return "\n\n".join(doc.page_content for doc in docs)
 
     rag_chain = (
-        {"context": retriever | format_docs, "question": RunnablePassthrough()}
+        {"context": retriever | format_docs, "question": RunnablePassthrough(), "chat_history": st.session_state.messages}
         | prompt
         | llm
         | StrOutputParser()
