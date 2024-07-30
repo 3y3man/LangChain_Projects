@@ -9,4 +9,4 @@ langchain-chroma
 langchain-text-splitters
 unstructured[all-docs]
 langchainhub
-protoc
+protoc >= 3.19.0
